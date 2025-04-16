@@ -196,8 +196,18 @@ export async function createUser(
 export async function getUsersByEventId(eventId: string): Promise<User[]> {
   try {
     console.log(`Getting users for event ID: ${eventId}`)
+    // Make sure we're using a valid UUID format for the event_id
+    if (
+      !eventId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      console.error(`Invalid event ID format: ${eventId}`)
+      return []
+    }
+
     const result = await sql`
-      SELECT * FROM users WHERE event_id = ${eventId}
+      SELECT * FROM users WHERE event_id = ${eventId}::uuid
     `
     console.log(`Found ${result.rows.length} users for event: ${eventId}`)
     return result.rows as User[]
@@ -218,10 +228,29 @@ export async function saveAvailability(
       `Saving availability for user ${userId}, event ${eventId}, ${timeSlots.length} time slots`
     )
 
+    // Validate UUID formats
+    if (
+      !eventId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      console.error(`Invalid event ID format: ${eventId}`)
+      return false
+    }
+
+    if (
+      !userId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      console.error(`Invalid user ID format: ${userId}`)
+      return false
+    }
+
     // First, delete any existing availability for this user and event
     await sql`
       DELETE FROM availability
-      WHERE event_id = ${eventId} AND user_id = ${userId}
+      WHERE event_id = ${eventId}::uuid AND user_id = ${userId}::uuid
     `
     console.log(`Deleted existing availability for user ${userId}`)
 
@@ -235,7 +264,7 @@ export async function saveAvailability(
           const id = uuidv4()
           await sql`
             INSERT INTO availability (id, event_id, user_id, time_slot)
-            VALUES (${id}, ${eventId}, ${userId}, ${timeSlot})
+            VALUES (${id}, ${eventId}::uuid, ${userId}::uuid, ${timeSlot})
           `
           inserted++
         } catch (insertError) {
@@ -264,8 +293,18 @@ export async function getAvailabilityByEventId(
 ): Promise<Availability[]> {
   try {
     console.log(`Getting availability for event ID: ${eventId}`)
+    // Make sure we're using a valid UUID format for the event_id
+    if (
+      !eventId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      console.error(`Invalid event ID format: ${eventId}`)
+      return []
+    }
+
     const result = await sql`
-      SELECT * FROM availability WHERE event_id = ${eventId}
+      SELECT * FROM availability WHERE event_id = ${eventId}::uuid
     `
     console.log(
       `Found ${result.rows.length} availability entries for event: ${eventId}`
@@ -282,8 +321,18 @@ export async function getAvailabilityByUserId(
 ): Promise<Availability[]> {
   try {
     console.log(`Getting availability for user ID: ${userId}`)
+    // Make sure we're using a valid UUID format for the user_id
+    if (
+      !userId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      console.error(`Invalid user ID format: ${userId}`)
+      return []
+    }
+
     const result = await sql`
-      SELECT * FROM availability WHERE user_id = ${userId}
+      SELECT * FROM availability WHERE user_id = ${userId}::uuid
     `
     console.log(
       `Found ${result.rows.length} availability entries for user: ${userId}`

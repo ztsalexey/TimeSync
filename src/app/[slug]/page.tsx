@@ -109,28 +109,55 @@ export default function EventPage() {
     })
   }
 
+  // State to track if we're editing an existing user's availability
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+
   // Handle saving availability
   const saveAvailability = async () => {
     if (!eventData || !userName) return
 
     try {
       setLoading(true)
-      const response = await fetch('/api/availability', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: userName,
-          timezone: userTimezone,
-          eventId: eventData.event.id,
-          availability: selectedTimeSlots,
-        }),
-      })
 
-      if (!response.ok) {
-        throw new Error('Failed to save availability')
+      if (editingUserId) {
+        // Updating existing user's availability
+        console.log(`Updating availability for user ${editingUserId}`)
+        const response = await fetch(`/api/availability/${editingUserId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            eventId: eventData.event.id,
+            availability: selectedTimeSlots,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to update availability')
+        }
+      } else {
+        // Creating new user
+        const response = await fetch('/api/availability', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: userName,
+            timezone: userTimezone,
+            eventId: eventData.event.id,
+            availability: selectedTimeSlots,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to save availability')
+        }
       }
+
+      // Reset editing state
+      setEditingUserId(null)
 
       // Refresh event data
       const updatedResponse = await fetch(`/api/events/${slug}`)
@@ -561,23 +588,22 @@ export default function EventPage() {
 
   const { event, participants } = eventData
 
-  // Format dates for display
-  const formattedStartDate = DateTime.fromISO(event.start_date).toFormat(
-    'MMM d, yyyy'
-  )
-  const formattedEndDate = DateTime.fromISO(event.end_date).toFormat(
-    'MMM d, yyyy'
-  )
+  // Format dates for display with error handling
+  const formattedStartDate = DateTime.fromISO(event.start_date).isValid
+    ? DateTime.fromISO(event.start_date).toFormat('MMM d, yyyy')
+    : 'Invalid date'
+  const formattedEndDate = DateTime.fromISO(event.end_date).isValid
+    ? DateTime.fromISO(event.end_date).toFormat('MMM d, yyyy')
+    : 'Invalid date'
 
-  // Format times for display
-  const formattedStartTime = DateTime.fromFormat(
-    event.start_time,
-    'HH:mm'
-  ).toFormat('h:mm a')
-  const formattedEndTime = DateTime.fromFormat(
-    event.end_time,
-    'HH:mm'
-  ).toFormat('h:mm a')
+  // Format times for display with error handling
+  const formattedStartTime = DateTime.fromFormat(event.start_time, 'HH:mm')
+    .isValid
+    ? DateTime.fromFormat(event.start_time, 'HH:mm').toFormat('h:mm a')
+    : 'Invalid time'
+  const formattedEndTime = DateTime.fromFormat(event.end_time, 'HH:mm').isValid
+    ? DateTime.fromFormat(event.end_time, 'HH:mm').toFormat('h:mm a')
+    : 'Invalid time'
 
   return (
     <div className="app-container">
@@ -602,7 +628,25 @@ export default function EventPage() {
               className={`pixel-button small ${
                 view === 'results' ? 'active' : ''
               }`}
-              onClick={() => setView('results')}
+              onClick={() => {
+                console.log('View Results clicked - refreshing data')
+                // Refresh event data when switching to results view
+                const refreshEventData = async () => {
+                  try {
+                    const response = await fetch(`/api/events/${slug}`)
+                    if (!response.ok) {
+                      throw new Error('Failed to refresh event data')
+                    }
+                    const data = await response.json()
+                    setEventData(data)
+                    console.log('Refreshed event data:', data)
+                  } catch (err) {
+                    console.error('Error refreshing event data:', err)
+                  }
+                }
+                refreshEventData()
+                setView('results')
+              }}
             >
               View Results
             </button>
@@ -686,7 +730,19 @@ export default function EventPage() {
               <ul id="participant-list">
                 {participants.map((participant) => (
                   <li key={participant.id}>
-                    {participant.name} ({participant.timezone})
+                    <button
+                      className="participant-name"
+                      onClick={() => {
+                        // Load this participant's availability for editing
+                        setUserName(participant.name)
+                        setUserTimezone(participant.timezone)
+                        setSelectedTimeSlots(participant.availability || [])
+                        setEditingUserId(participant.id)
+                        setView('availability')
+                      }}
+                    >
+                      {participant.name} ({participant.timezone})
+                    </button>
                   </li>
                 ))}
               </ul>

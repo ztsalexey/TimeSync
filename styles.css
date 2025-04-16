@@ -25,7 +25,7 @@
 }
 
 body {
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
@@ -63,7 +63,7 @@ header {
   margin-bottom: 10px;
   text-shadow: 4px 4px 0 var(--color-dark);
   letter-spacing: 2px;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .regular-title {
@@ -127,7 +127,7 @@ select {
   background-color: var(--color-dark);
   border: 2px solid var(--color-text);
   color: var(--color-text);
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 0.7rem;
 }
 
@@ -181,7 +181,7 @@ select:focus {
   color: white;
   border: 2px solid #000000;
   padding: 12px 20px;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 0.8rem;
   cursor: pointer;
   box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
@@ -193,7 +193,7 @@ select:focus {
 }
 
 .pixel-button::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -272,6 +272,11 @@ select:focus {
   width: 80px;
   min-width: 80px;
   border-right: 2px solid var(--color-text);
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+  pointer-events: none; /* Prevent drag selection */
 }
 
 .availability-table th.corner-cell {
@@ -344,6 +349,23 @@ select:focus {
 #participant-list li {
   padding: 8px;
   border-bottom: 1px solid var(--color-dark);
+}
+
+.participant-name {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font-family: 'Press Start 2P', cursive;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.participant-name:hover {
+  opacity: 0.8;
 }
 
 /* Share Section */
@@ -425,7 +447,7 @@ footer {
 
 /* Pixel Art Decorations */
 .section::before {
-  content: "";
+  content: '';
   display: block;
   height: 4px;
   background: repeating-linear-gradient(
@@ -503,7 +525,7 @@ footer {
   );
   border: 2px solid #000000;
   padding: 10px;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 0.6rem;
   cursor: pointer;
   writing-mode: vertical-lr;
@@ -515,7 +537,7 @@ footer {
 }
 
 .prev-week-button button::before {
-  content: "◀";
+  content: '◀';
   position: absolute;
   top: 0;
   left: 0;
@@ -562,7 +584,7 @@ footer {
   );
   border: 2px solid #000000;
   padding: 10px;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 0.6rem;
   cursor: pointer;
   writing-mode: vertical-lr;
@@ -574,7 +596,7 @@ footer {
 }
 
 .next-week-button button::before {
-  content: "▶";
+  content: '▶';
   position: absolute;
   top: 0;
   left: 0;
