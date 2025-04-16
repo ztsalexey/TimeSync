@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TimeSync</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <h1 class="regular-title">TimeSync</h1>
+        </div>
+        <p class="subtitle">We be schedulin'</p>
+      </header>
+
+      <div class="app-container">
+        <!-- Event Creation Section -->
+        <div id="event-creation" class="section">
+          <h2 class="section-title">Create New Event</h2>
+          <form id="create-event-form">
+            <div class="form-group">
+              <label for="event-name">Event Name:</label>
+              <input type="text" id="event-name" required />
+            </div>
+
+            <div class="form-group date-range">
+              <label>Date Range:</label>
+              <div class="date-inputs">
+                <div class="date-input">
+                  <label for="start-date">From:</label>
+                  <input type="date" id="start-date" required />
+                </div>
+                <div class="date-input">
+                  <label for="end-date">To:</label>
+                  <input type="date" id="end-date" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group time-range">
+              <label>Time Range:</label>
+              <div class="time-inputs">
+                <select id="start-time">
+                  <!-- Options will be added via JavaScript -->
+                </select>
+                <span>to</span>
+                <select id="end-time">
+                  <!-- Options will be added via JavaScript -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="timezone">Your Time Zone:</label>
+              <select id="timezone" required>
+                <!-- Time zones will be added via JavaScript -->
+              </select>
+            </div>
+
+            <button type="submit" class="pixel-button">Create Event</button>
+          </form>
+        </div>
+
+        <!-- Availability Selection Section (initially hidden) -->
+        <div id="availability-selection" class="section hidden">
+          <div class="section-header">
+            <h2 class="section-title" id="event-title">Event Name</h2>
+            <div class="timezone-selector">
+              <label for="user-timezone">View in:</label>
+              <select id="user-timezone">
+                <!-- Time zones will be added via JavaScript -->
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div id="availability-grid">
+              <!-- Grid will be added via JavaScript -->
+            </div>
+          </div>
+
+          <div class="user-controls">
+            <div class="form-group">
+              <label for="user-name">Your Name:</label>
+              <input type="text" id="user-name" required />
+            </div>
+            <button id="save-availability" class="pixel-button">
+              Save My Availability
+            </button>
+          </div>
+        </div>
+
+        <!-- Results View Section (initially hidden) -->
+        <div id="results-view" class="section hidden">
+          <div class="section-header">
+            <h2 class="section-title">Group Availability</h2>
+            <div class="timezone-selector">
+              <label for="results-timezone">View in:</label>
+              <select id="results-timezone">
+                <!-- Time zones will be added via JavaScript -->
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div id="results-grid">
+              <!-- Grid will be added via JavaScript -->
+            </div>
+          </div>
+
+          <div class="legend">
+            <div class="legend-item">
+              <div
+                class="legend-color"
+                style="background-color: var(--color-unavailable)"
+              ></div>
+              <span>Unavailable</span>
+            </div>
+            <div class="legend-item">
+              <div
+                class="legend-color"
+                style="background-color: var(--color-low)"
+              ></div>
+              <span>Few Available</span>
+            </div>
+            <div class="legend-item">
+              <div
+                class="legend-color"
+                style="background-color: var(--color-medium)"
+              ></div>
+              <span>Some Available</span>
+            </div>
+            <div class="legend-item">
+              <div
+                class="legend-color"
+                style="background-color: var(--color-high)"
+              ></div>
+              <span>Most Available</span>
+            </div>
+          </div>
+
+          <div class="participants">
+            <h3>Participants</h3>
+            <ul id="participant-list">
+              <!-- Participants will be added via JavaScript -->
+            </ul>
+          </div>
+
+          <div class="share-section">
+            <h3>Share This Event</h3>
+            <div class="share-link">
+              <input type="text" id="share-url" readonly />
+              <button id="copy-link" class="pixel-button small">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>Made with ❤️ by <span class="yellow-text">2bb</span></p>
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
