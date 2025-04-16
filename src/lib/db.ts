@@ -1,37 +1,50 @@
-import { sql } from "@vercel/postgres";
-import { v4 as uuidv4 } from "uuid";
-import { DateTime } from "luxon";
+import { sql } from '@vercel/postgres'
+import { v4 as uuidv4 } from 'uuid'
+import { DateTime } from 'luxon'
+
+// Enhanced logging for debugging
+function logError(message: string, error: any) {
+  console.error(`${message}:`, error)
+  console.error('Error details:', {
+    name: error?.name,
+    message: error?.message,
+    stack: error?.stack,
+    cause: error?.cause,
+  })
+}
 
 // Types
 export interface Event {
-  id: string;
-  name: string;
-  slug: string;
-  start_date: string;
-  end_date: string;
-  start_time: string;
-  end_time: string;
-  timezone: string;
-  created_at: string;
+  id: string
+  name: string
+  slug: string
+  start_date: string
+  end_date: string
+  start_time: string
+  end_time: string
+  timezone: string
+  created_at: string
 }
 
 export interface User {
-  id: string;
-  name: string;
-  timezone: string;
-  event_id: string;
+  id: string
+  name: string
+  timezone: string
+  event_id: string
 }
 
 export interface Availability {
-  id: string;
-  event_id: string;
-  user_id: string;
-  time_slot: string;
+  id: string
+  event_id: string
+  user_id: string
+  time_slot: string
 }
 
 // Initialize database tables
 export async function initializeDatabase() {
   try {
+    console.log('Initializing database...')
+
     // Create events table
     await sql`
       CREATE TABLE IF NOT EXISTS events (
@@ -45,7 +58,8 @@ export async function initializeDatabase() {
         timezone VARCHAR(100) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `
+    console.log('Events table created or already exists')
 
     // Create users table
     await sql`
@@ -56,7 +70,8 @@ export async function initializeDatabase() {
         event_id UUID NOT NULL,
         FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
       )
-    `;
+    `
+    console.log('Users table created or already exists')
 
     // Create availability table
     await sql`
@@ -68,13 +83,14 @@ export async function initializeDatabase() {
         FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
-    `;
+    `
+    console.log('Availability table created or already exists')
 
-    console.log("Database initialized successfully");
-    return { success: true };
+    console.log('Database initialized successfully')
+    return { success: true }
   } catch (error) {
-    console.error("Error initializing database:", error);
-    return { success: false, error };
+    logError('Error initializing database', error)
+    return { success: false, error }
   }
 }
 
@@ -89,55 +105,67 @@ export async function createEvent(
   timezone: string
 ): Promise<Event | null> {
   try {
-    const id = uuidv4();
+    console.log(
+      `Creating event: ${name}, slug: ${slug}, dates: ${startDate} to ${endDate}`
+    )
+    const id = uuidv4()
     const result = await sql`
       INSERT INTO events (id, name, slug, start_date, end_date, start_time, end_time, timezone)
       VALUES (${id}, ${name}, ${slug}, ${startDate}, ${endDate}, ${startTime}, ${endTime}, ${timezone})
       RETURNING *
-    `;
-    return result.rows[0] as Event;
+    `
+    console.log('Event created:', result.rows[0])
+    return result.rows[0] as Event
   } catch (error) {
-    console.error("Error creating event:", error);
-    return null;
+    logError(`Error creating event: ${name}`, error)
+    return null
   }
 }
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
   try {
+    console.log(`Getting event by slug: ${slug}`)
     const result = await sql`
       SELECT * FROM events WHERE slug = ${slug}
-    `;
-    return result.rows.length > 0 ? (result.rows[0] as Event) : null;
+    `
+    const found = result.rows.length > 0
+    console.log(`Event found: ${found}`, found ? result.rows[0] : null)
+    return found ? (result.rows[0] as Event) : null
   } catch (error) {
-    console.error("Error getting event by slug:", error);
-    return null;
+    logError(`Error getting event by slug: ${slug}`, error)
+    return null
   }
 }
 
 export async function getEventById(id: string): Promise<Event | null> {
   try {
+    console.log(`Getting event by ID: ${id}`)
     const result = await sql`
       SELECT * FROM events WHERE id = ${id}
-    `;
-    return result.rows.length > 0 ? (result.rows[0] as Event) : null;
+    `
+    const found = result.rows.length > 0
+    console.log(`Event found: ${found}`, found ? result.rows[0] : null)
+    return found ? (result.rows[0] as Event) : null
   } catch (error) {
-    console.error("Error getting event by ID:", error);
-    return null;
+    logError(`Error getting event by ID: ${id}`, error)
+    return null
   }
 }
 
 export async function deleteExpiredEvents(): Promise<number> {
   try {
-    const today = DateTime.now().toISODate();
+    const today = DateTime.now().toISODate()
+    console.log(`Deleting events expired before: ${today}`)
     const result = await sql`
       DELETE FROM events
       WHERE end_date < ${today}
       RETURNING id
-    `;
-    return result.rows.length;
+    `
+    console.log(`Deleted ${result.rows.length} expired events`)
+    return result.rows.length
   } catch (error) {
-    console.error("Error deleting expired events:", error);
-    return 0;
+    logError('Error deleting expired events', error)
+    return 0
   }
 }
 
@@ -148,28 +176,34 @@ export async function createUser(
   eventId: string
 ): Promise<User | null> {
   try {
-    const id = uuidv4();
+    console.log(
+      `Creating user: ${name}, timezone: ${timezone}, eventId: ${eventId}`
+    )
+    const id = uuidv4()
     const result = await sql`
       INSERT INTO users (id, name, timezone, event_id)
       VALUES (${id}, ${name}, ${timezone}, ${eventId})
       RETURNING *
-    `;
-    return result.rows[0] as User;
+    `
+    console.log('User created:', result.rows[0])
+    return result.rows[0] as User
   } catch (error) {
-    console.error("Error creating user:", error);
-    return null;
+    logError(`Error creating user: ${name} for event: ${eventId}`, error)
+    return null
   }
 }
 
 export async function getUsersByEventId(eventId: string): Promise<User[]> {
   try {
+    console.log(`Getting users for event ID: ${eventId}`)
     const result = await sql`
       SELECT * FROM users WHERE event_id = ${eventId}
-    `;
-    return result.rows as User[];
+    `
+    console.log(`Found ${result.rows.length} users for event: ${eventId}`)
+    return result.rows as User[]
   } catch (error) {
-    console.error("Error getting users by event ID:", error);
-    return [];
+    logError(`Error getting users for event ID: ${eventId}`, error)
+    return []
   }
 }
 
@@ -180,42 +214,48 @@ export async function saveAvailability(
   timeSlots: string[]
 ): Promise<boolean> {
   try {
+    console.log(
+      `Saving availability for user ${userId}, event ${eventId}, ${timeSlots.length} time slots`
+    )
+
     // First, delete any existing availability for this user and event
     await sql`
       DELETE FROM availability
       WHERE event_id = ${eventId} AND user_id = ${userId}
-    `;
+    `
+    console.log(`Deleted existing availability for user ${userId}`)
 
     // Then insert the new availability
     if (timeSlots.length > 0) {
-      const values = timeSlots.map((timeSlot) => {
-        return {
-          id: uuidv4(),
-          event_id: eventId,
-          user_id: userId,
-          time_slot: timeSlot,
-        };
-      });
+      let inserted = 0
 
-      // Insert in batches to avoid query size limits
-      const batchSize = 100;
-      for (let i = 0; i < values.length; i += batchSize) {
-        const batch = values.slice(i, i + batchSize);
-
-        // Insert each record individually using parametrized queries
-        for (const value of batch) {
+      // Insert each time slot individually
+      for (const timeSlot of timeSlots) {
+        try {
+          const id = uuidv4()
           await sql`
             INSERT INTO availability (id, event_id, user_id, time_slot)
-            VALUES (${value.id}, ${value.event_id}, ${value.user_id}, ${value.time_slot})
-          `;
+            VALUES (${id}, ${eventId}, ${userId}, ${timeSlot})
+          `
+          inserted++
+        } catch (insertError) {
+          console.error(`Error inserting timeslot ${timeSlot}:`, insertError)
+          // Continue with next timeslot even if this one failed
         }
       }
+
+      console.log(
+        `Successfully inserted ${inserted} of ${timeSlots.length} availability slots`
+      )
     }
 
-    return true;
+    return true
   } catch (error) {
-    console.error("Error saving availability:", error);
-    return false;
+    logError(
+      `Error saving availability for user ${userId}, event ${eventId}`,
+      error
+    )
+    return false
   }
 }
 
@@ -223,13 +263,17 @@ export async function getAvailabilityByEventId(
   eventId: string
 ): Promise<Availability[]> {
   try {
+    console.log(`Getting availability for event ID: ${eventId}`)
     const result = await sql`
       SELECT * FROM availability WHERE event_id = ${eventId}
-    `;
-    return result.rows as Availability[];
+    `
+    console.log(
+      `Found ${result.rows.length} availability entries for event: ${eventId}`
+    )
+    return result.rows as Availability[]
   } catch (error) {
-    console.error("Error getting availability by event ID:", error);
-    return [];
+    logError(`Error getting availability for event ID: ${eventId}`, error)
+    return []
   }
 }
 
@@ -237,12 +281,16 @@ export async function getAvailabilityByUserId(
   userId: string
 ): Promise<Availability[]> {
   try {
+    console.log(`Getting availability for user ID: ${userId}`)
     const result = await sql`
       SELECT * FROM availability WHERE user_id = ${userId}
-    `;
-    return result.rows as Availability[];
+    `
+    console.log(
+      `Found ${result.rows.length} availability entries for user: ${userId}`
+    )
+    return result.rows as Availability[]
   } catch (error) {
-    console.error("Error getting availability by user ID:", error);
-    return [];
+    logError(`Error getting availability for user ID: ${userId}`, error)
+    return []
   }
 }
