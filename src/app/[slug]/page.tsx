@@ -588,22 +588,47 @@ export default function EventPage() {
 
   const { event, participants } = eventData
 
-  // Format dates for display with error handling
-  const formattedStartDate = DateTime.fromISO(event.start_date).isValid
-    ? DateTime.fromISO(event.start_date).toFormat('MMM d, yyyy')
-    : 'Invalid date'
-  const formattedEndDate = DateTime.fromISO(event.end_date).isValid
-    ? DateTime.fromISO(event.end_date).toFormat('MMM d, yyyy')
-    : 'Invalid date'
+  // Format dates for display with robust error handling
+  let formattedStartDate = 'Invalid date'
+  let formattedEndDate = 'Invalid date'
+  let formattedStartTime = 'Invalid time'
+  let formattedEndTime = 'Invalid time'
 
-  // Format times for display with error handling
-  const formattedStartTime = DateTime.fromFormat(event.start_time, 'HH:mm')
-    .isValid
-    ? DateTime.fromFormat(event.start_time, 'HH:mm').toFormat('h:mm a')
-    : 'Invalid time'
-  const formattedEndTime = DateTime.fromFormat(event.end_time, 'HH:mm').isValid
-    ? DateTime.fromFormat(event.end_time, 'HH:mm').toFormat('h:mm a')
-    : 'Invalid time'
+  try {
+    const startDate = DateTime.fromISO(event.start_date)
+    if (startDate.isValid) {
+      formattedStartDate = startDate.toFormat('MMM d, yyyy')
+    }
+  } catch (e) {
+    console.error('Error formatting start date:', e)
+  }
+
+  try {
+    const endDate = DateTime.fromISO(event.end_date)
+    if (endDate.isValid) {
+      formattedEndDate = endDate.toFormat('MMM d, yyyy')
+    }
+  } catch (e) {
+    console.error('Error formatting end date:', e)
+  }
+
+  try {
+    const startTime = DateTime.fromFormat(event.start_time, 'HH:mm')
+    if (startTime.isValid) {
+      formattedStartTime = startTime.toFormat('h:mm a')
+    }
+  } catch (e) {
+    console.error('Error formatting start time:', e)
+  }
+
+  try {
+    const endTime = DateTime.fromFormat(event.end_time, 'HH:mm')
+    if (endTime.isValid) {
+      formattedEndTime = endTime.toFormat('h:mm a')
+    }
+  } catch (e) {
+    console.error('Error formatting end time:', e)
+  }
 
   return (
     <div className="app-container">
